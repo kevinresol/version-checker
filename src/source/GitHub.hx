@@ -24,7 +24,7 @@ class GitHub implements Source {
 					.next(res -> {
 						var obj:Array<{name:String, commit:{sha:String}}> = haxe.Json.parse(res.body);
 						switch obj.find(t -> t.name == tag) {
-							case null: new Error('GitHub: Can\'t find the tag $tag');
+							case null: new Error('GitHub: Tag $tag not found for $owner/$project');
 							case v: fetch('https://api.github.com/repos/$owner/$project/commits?sha=${v.commit.sha}').all();
 						}
 					});

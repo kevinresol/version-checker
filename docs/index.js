@@ -213,8 +213,8 @@ Main.main = function() {
 		pre.innerText = v;
 		window.document.body.appendChild(pre);
 	};
-	var _check = function(lib) {
-		Main.check(lib,"haxetink",lib,"master").handle(function(o) {
+	var _check = function(owner,lib) {
+		Main.check(lib,owner,lib,"master").handle(function(o) {
 			switch(o[1]) {
 			case 0:
 				var tag = o[2].tag;
@@ -225,7 +225,7 @@ Main.main = function() {
 					var tag1 = o[2].tag;
 					var latest1 = o[2].latest;
 					var dt = (latest1.date.getTime() - tag1.date.getTime()) / 1000;
-					var format = dt < 60 ? "" + dt + " seconds" : dt < 3600 ? "" + (dt / 60 | 0) + " mintes" : dt < 86400 ? "" + (dt / 3600 | 0) + " hours" : "" + (dt / 24 / 3600 | 0) + " days";
+					var format = dt < 60 ? "" + dt + " second(s)" : dt < 3600 ? "" + (dt / 60 | 0) + " minute(s)" : dt < 86400 ? "" + (dt / 3600 | 0) + " hour(s)" : "" + (dt / 24 / 3600 | 0) + " day(s)";
 					var _check1 = "" + lib + " is " + format + " behind master\n(" + HxOverrides.substr(latest1.sha,0,8) + " " + DateTools.format(latest1.date,"%F %T") + " >> " + HxOverrides.substr(tag1.sha,0,8) + " " + DateTools.format(tag1.date,"%F %T") + ")";
 					print(_check1);
 				}
@@ -239,12 +239,23 @@ Main.main = function() {
 	};
 	tink_http__$Fetch_FetchResponse_$Impl_$.all(tink_http_Fetch.fetch(tink__$Url_Url_$Impl_$.fromString("https://api.github.com/orgs/haxetink/repos?per_page=100"),null)).handle(function(o1) {
 		var repos = JSON.parse(tink_core_OutcomeTools.sure(o1).body.toString());
-		console.log("Main.hx:45:","Got " + repos.length + " repos");
+		console.log("Main.hx:45:","Got " + repos.length + " tink repos");
 		var _g = 0;
 		while(_g < repos.length) {
 			var repo = repos[_g];
 			++_g;
-			_check(repo.name);
+			_check("haxetink",repo.name);
+		}
+		return;
+	});
+	tink_http__$Fetch_FetchResponse_$Impl_$.all(tink_http_Fetch.fetch(tink__$Url_Url_$Impl_$.fromString("https://api.github.com/orgs/MVCoconut/repos?per_page=100"),null)).handle(function(o2) {
+		var repos1 = JSON.parse(tink_core_OutcomeTools.sure(o2).body.toString());
+		console.log("Main.hx:52:","Got " + repos1.length + " coconut repos");
+		var _g1 = 0;
+		while(_g1 < repos1.length) {
+			var repo1 = repos1[_g1];
+			++_g1;
+			_check("MVCoconut",repo1.name);
 		}
 		return;
 	});
@@ -1187,11 +1198,12 @@ lib_Haxelib.prototype = {
 	getInfo: function() {
 		var _gthis = this;
 		return tink_core__$Promise_Promise_$Impl_$.next(tink_http__$Fetch_FetchResponse_$Impl_$.all(tink_http_Fetch.fetch(tink__$Url_Url_$Impl_$.fromString("https://cors-anywhere.herokuapp.com/https://lib.haxe.org/p/" + this.lib),null)),function(res) {
-			var re = new EReg("<code>haxelib install " + _gthis.lib + " (.*)<\\/code>","");
+			var escaped = StringTools.replace(_gthis.lib,".","\\.");
+			var re = new EReg("<code>haxelib install " + escaped + " (.*)<\\/code>","");
 			if(re.match(res.body.toString())) {
 				return tink_core__$Promise_Promise_$Impl_$.ofOutcome(tink_core_Outcome.Success({ version : re.matched(1)}));
 			} else {
-				return tink_core__$Promise_Promise_$Impl_$.ofOutcome(tink_core_Outcome.Failure(new tink_core_TypedError(null,"Haxelib: Unable to parse version of " + _gthis.lib,{ fileName : "Haxelib.hx", lineNumber : 24, className : "lib.Haxelib", methodName : "getInfo"})));
+				return tink_core__$Promise_Promise_$Impl_$.ofOutcome(tink_core_Outcome.Failure(new tink_core_TypedError(null,"Haxelib: Unable to parse version of " + _gthis.lib,{ fileName : "Haxelib.hx", lineNumber : 26, className : "lib.Haxelib", methodName : "getInfo"})));
 			}
 		});
 	}
@@ -1217,7 +1229,7 @@ source_GitHub.prototype = {
 					return t.name == tag;
 				});
 				if(_g1 == null) {
-					return tink_core__$Promise_Promise_$Impl_$.ofOutcome(tink_core_Outcome.Failure(new tink_core_TypedError(null,"GitHub: Can't find the tag " + tag,{ fileName : "GitHub.hx", lineNumber : 27, className : "source.GitHub", methodName : "getInfo"})));
+					return tink_core__$Promise_Promise_$Impl_$.ofOutcome(tink_core_Outcome.Failure(new tink_core_TypedError(null,"GitHub: Tag " + tag + " not found for " + _gthis.owner + "/" + _gthis.project,{ fileName : "GitHub.hx", lineNumber : 27, className : "source.GitHub", methodName : "getInfo"})));
 				} else {
 					var v = _g1;
 					return tink_http__$Fetch_FetchResponse_$Impl_$.all(tink_http_Fetch.fetch(tink__$Url_Url_$Impl_$.fromString("https://api.github.com/repos/" + _gthis.owner + "/" + _gthis.project + "/commits?sha=" + v.commit.sha),null));

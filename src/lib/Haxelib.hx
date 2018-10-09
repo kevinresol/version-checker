@@ -5,6 +5,7 @@ import tink.http.Client.*;
 import js.html.*;
 import js.Browser.*;
 
+using StringTools;
 import tink.CoreApi;
 
 class Haxelib implements Lib {
@@ -19,7 +20,8 @@ class Haxelib implements Lib {
 		// HACK: this hacks through CORS using the cors-anywhere service
 		return fetch('https://cors-anywhere.herokuapp.com/https://lib.haxe.org/p/$lib').all()
 			.next(res -> {
-				var re = new EReg('<code>haxelib install $lib (.*)<\\/code>', '');
+				var escaped = lib.replace('.', '\\.');
+				var re = new EReg('<code>haxelib install ${escaped} (.*)<\\/code>', '');
 				if(re.match(res.body)) {version: re.matched(1)};
 				else new Error('Haxelib: Unable to parse version of $lib');
 			});

@@ -18,8 +18,8 @@ class Main {
 			document.body.appendChild(pre);
 		}
 		
-		function _check(lib:String) {
-			check(lib, 'haxetink', lib, 'master')
+		function _check(owner:String, lib:String) {
+			check(lib, owner, lib, 'master')
 				.handle(function(o) switch o {
 					case Success({tag: tag, latest: latest}) if(tag.sha == latest.sha):
 						// trace(tag, latest);	
@@ -28,10 +28,10 @@ class Main {
 						var dt = (latest.date.getTime() - tag.date.getTime()) / 1000;
 						
 						var format = 
-							if(dt < 60) '$dt seconds';
-							else if(dt < 3600) '${Std.int(dt / 60)} mintes'
-							else if(dt < 24 * 3600) '${Std.int(dt / 3600)} hours'
-							else '${Std.int(dt / 24 / 3600)} days';
+							if(dt < 60) '$dt second(s)';
+							else if(dt < 3600) '${Std.int(dt / 60)} minute(s)'
+							else if(dt < 24 * 3600) '${Std.int(dt / 3600)} hour(s)'
+							else '${Std.int(dt / 24 / 3600)} day(s)';
 						
 						print('$lib is $format behind master\n(${latest.sha.substr(0, 8)} ${latest.date.format('%F %T')} >> ${tag.sha.substr(0, 8)} ${tag.date.format('%F %T')})');
 					case Failure(e):
@@ -42,8 +42,15 @@ class Main {
 		fetch('https://api.github.com/orgs/haxetink/repos?per_page=100').all()
 			.handle(o -> {
 				var repos:Array<{name:String}> = haxe.Json.parse(o.sure().body);
-				trace('Got ${repos.length} repos');
-				for(repo in repos) _check(repo.name);
+				trace('Got ${repos.length} tink repos');
+				for(repo in repos) _check('haxetink', repo.name);
+			});
+		
+		fetch('https://api.github.com/orgs/MVCoconut/repos?per_page=100').all()
+			.handle(o -> {
+				var repos:Array<{name:String}> = haxe.Json.parse(o.sure().body);
+				trace('Got ${repos.length} coconut repos');
+				for(repo in repos) _check('MVCoconut', repo.name);
 			});
 		
 	}
