@@ -1,0 +1,7 @@
+-cp src
+-main Main
+-js bin/index.js
+-dce full
+
+# -lib hx3compat
+-lib tink_web
