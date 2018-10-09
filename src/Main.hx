@@ -39,7 +39,7 @@ class Main {
 				});
 		}
 		
-		fetch('https://api.github.com/orgs/haxetink/repos').all()
+		fetch('https://api.github.com/orgs/haxetink/repos?per_page=100').all()
 			.handle(o -> {
 				var repos:Array<{name:String}> = haxe.Json.parse(o.sure().body);
 				trace('Got ${repos.length} repos');

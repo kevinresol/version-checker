@@ -237,7 +237,7 @@ Main.main = function() {
 			}
 		});
 	};
-	tink_http__$Fetch_FetchResponse_$Impl_$.all(tink_http_Fetch.fetch(tink__$Url_Url_$Impl_$.fromString("https://api.github.com/orgs/haxetink/repos"),null)).handle(function(o1) {
+	tink_http__$Fetch_FetchResponse_$Impl_$.all(tink_http_Fetch.fetch(tink__$Url_Url_$Impl_$.fromString("https://api.github.com/orgs/haxetink/repos?per_page=100"),null)).handle(function(o1) {
 		var repos = JSON.parse(tink_core_OutcomeTools.sure(o1).body.toString());
 		console.log("Main.hx:45:","Got " + repos.length + " repos");
 		var _g = 0;
