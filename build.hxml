@@ -1,6 +1,6 @@
 -cp src
 -main Main
--js bin/index.js
+-js docs/index.js
 -dce full
 
 # -lib hx3compat
