@@ -208,13 +208,16 @@ Lib.__name__ = true;
 var Main = function() { };
 Main.__name__ = true;
 Main.main = function() {
+	var url = tink__$Url_Url_$Impl_$.fromString(window.location.href);
+	var _this = tink_url__$Query_Query_$Impl_$.toMap(url.query);
+	var credentials = tink_url__$Portion_Portion_$Impl_$.toString(__map_reserved["credentials"] != null ? _this.getReserved("credentials") : _this.h["credentials"]);
 	var print = function(v) {
 		var pre = window.document.createElement("pre");
 		pre.innerText = v;
 		window.document.body.appendChild(pre);
 	};
 	var _check = function(owner,lib) {
-		Main.check(lib,owner,lib,"master").handle(function(o) {
+		Main.check(lib,owner,lib,"master",credentials).handle(function(o) {
 			switch(o[1]) {
 			case 0:
 				var tag = o[2].tag;
@@ -232,38 +235,64 @@ Main.main = function() {
 				break;
 			case 1:
 				var e = o[2];
-				console.log("Main.hx:38:",e);
+				console.log("Main.hx:42:",e);
 				break;
 			}
 		});
 	};
-	tink_http__$Fetch_FetchResponse_$Impl_$.all(tink_http_Fetch.fetch(tink__$Url_Url_$Impl_$.fromString("https://api.github.com/orgs/haxetink/repos?per_page=100"),null)).handle(function(o1) {
+	var url1 = tink__$Url_Url_$Impl_$.fromString("https://api.github.com/orgs/haxetink/repos?per_page=100");
+	var options;
+	if(credentials == null) {
+		options = new tink_http_HeaderField(tink_http__$Header_HeaderName_$Impl_$.ofString("X-DUMMY"),"");
+	} else {
+		var _g = credentials.indexOf(":");
+		if(_g == -1) {
+			throw new js__$Boot_HaxeError("invalid credentials");
+		} else {
+			var i = _g;
+			options = new tink_http_HeaderField("authorization",tink_http__$Header_HeaderValue_$Impl_$.basicAuth(HxOverrides.substr(credentials,0,i),HxOverrides.substr(credentials,i + 1,null)));
+		}
+	}
+	tink_http__$Fetch_FetchResponse_$Impl_$.all(tink_http_Fetch.fetch(url1,{ headers : [options]})).handle(function(o1) {
 		var repos = JSON.parse(tink_core_OutcomeTools.sure(o1).body.toString());
-		console.log("Main.hx:45:","Got " + repos.length + " tink repos");
-		var _g = 0;
-		while(_g < repos.length) {
-			var repo = repos[_g];
-			++_g;
+		console.log("Main.hx:49:","Got " + repos.length + " tink repos");
+		var _g1 = 0;
+		while(_g1 < repos.length) {
+			var repo = repos[_g1];
+			++_g1;
 			_check("haxetink",repo.name);
 		}
 		return;
 	});
-	tink_http__$Fetch_FetchResponse_$Impl_$.all(tink_http_Fetch.fetch(tink__$Url_Url_$Impl_$.fromString("https://api.github.com/orgs/MVCoconut/repos?per_page=100"),null)).handle(function(o2) {
+	var url2 = tink__$Url_Url_$Impl_$.fromString("https://api.github.com/orgs/MVCoconut/repos?per_page=100");
+	var options1;
+	if(credentials == null) {
+		options1 = new tink_http_HeaderField(tink_http__$Header_HeaderName_$Impl_$.ofString("X-DUMMY"),"");
+	} else {
+		var _g2 = credentials.indexOf(":");
+		if(_g2 == -1) {
+			throw new js__$Boot_HaxeError("invalid credentials");
+		} else {
+			var i1 = _g2;
+			options1 = new tink_http_HeaderField("authorization",tink_http__$Header_HeaderValue_$Impl_$.basicAuth(HxOverrides.substr(credentials,0,i1),HxOverrides.substr(credentials,i1 + 1,null)));
+		}
+	}
+	tink_http__$Fetch_FetchResponse_$Impl_$.all(tink_http_Fetch.fetch(url2,{ headers : [options1]})).handle(function(o2) {
 		var repos1 = JSON.parse(tink_core_OutcomeTools.sure(o2).body.toString());
-		console.log("Main.hx:52:","Got " + repos1.length + " coconut repos");
-		var _g1 = 0;
-		while(_g1 < repos1.length) {
-			var repo1 = repos1[_g1];
-			++_g1;
+		console.log("Main.hx:56:","Got " + repos1.length + " coconut repos");
+		var _g3 = 0;
+		while(_g3 < repos1.length) {
+			var repo1 = repos1[_g3];
+			++_g3;
 			_check("MVCoconut",repo1.name);
 		}
 		return;
 	});
 };
-Main.check = function(lib1,owner,project,branch) {
+Main.check = function(lib1,owner,project,branch,credentials) {
 	var haxelib = new lib_Haxelib(lib1);
 	return tink_core__$Promise_Promise_$Impl_$.ofSpecific(tink_core__$Promise_Promise_$Impl_$.next(tink_core__$Promise_Promise_$Impl_$.next(haxelib.getInfo(),function(lib2) {
-		return tink_core__$Promise_Promise_$Impl_$.inParallel([new source_GitHub(owner,project,source_Target.Tag(lib2.version)).getInfo(),new source_GitHub(owner,project,source_Target.Branch(branch)).getInfo()]);
+		return tink_core__$Promise_Promise_$Impl_$.inParallel([new source_GitHub(owner,project,source_Target.Tag(lib2.version),credentials).getInfo(),new source_GitHub(owner,project,source_Target.Branch(branch),credentials).getInfo()]);
 	}),function(res) {
 		return tink_core__$Promise_Promise_$Impl_$.ofOutcome(tink_core_Outcome.Success({ tag : res[0], latest : res[1]}));
 	}));
@@ -530,6 +559,64 @@ haxe_io_Bytes.prototype = {
 		return this.getString(0,this.length);
 	}
 };
+var haxe_crypto_Base64 = function() { };
+haxe_crypto_Base64.__name__ = true;
+haxe_crypto_Base64.encode = function(bytes,complement) {
+	if(complement == null) {
+		complement = true;
+	}
+	var str = new haxe_crypto_BaseCode(haxe_crypto_Base64.BYTES).encodeBytes(bytes).toString();
+	if(complement) {
+		var _g = bytes.length % 3;
+		switch(_g) {
+		case 1:
+			str += "==";
+			break;
+		case 2:
+			str += "=";
+			break;
+		default:
+		}
+	}
+	return str;
+};
+var haxe_crypto_BaseCode = function(base) {
+	var len = base.length;
+	var nbits = 1;
+	while(len > 1 << nbits) ++nbits;
+	if(nbits > 8 || len != 1 << nbits) {
+		throw new js__$Boot_HaxeError("BaseCode : base length must be a power of two.");
+	}
+	this.base = base;
+	this.nbits = nbits;
+};
+haxe_crypto_BaseCode.__name__ = true;
+haxe_crypto_BaseCode.prototype = {
+	encodeBytes: function(b) {
+		var nbits = this.nbits;
+		var base = this.base;
+		var size = b.length * 8 / nbits | 0;
+		var out = new haxe_io_Bytes(new ArrayBuffer(size + (b.length * 8 % nbits == 0 ? 0 : 1)));
+		var buf = 0;
+		var curbits = 0;
+		var mask = (1 << nbits) - 1;
+		var pin = 0;
+		var pout = 0;
+		while(pout < size) {
+			while(curbits < nbits) {
+				curbits += 8;
+				buf <<= 8;
+				buf |= b.b[pin++];
+			}
+			curbits -= nbits;
+			out.b[pout++] = base.b[buf >> curbits & mask] & 255;
+		}
+		if(curbits > 0) {
+			out.b[pout++] = base.b[buf << nbits - curbits & mask] & 255;
+		}
+		return out;
+	}
+};
 var haxe_ds_BalancedTree = function() {
 };
 haxe_ds_BalancedTree.__name__ = true;
@@ -679,6 +766,26 @@ haxe_ds_EnumValueMap.prototype = $extend(haxe_ds_BalancedTree.prototype,{
 		}
 	}
 });
+var haxe_ds_StringMap = function() {
+	this.h = { };
+};
+haxe_ds_StringMap.__name__ = true;
+haxe_ds_StringMap.__interfaces__ = [haxe_IMap];
+haxe_ds_StringMap.prototype = {
+	setReserved: function(key,value) {
+		if(this.rh == null) {
+			this.rh = { };
+		}
+		this.rh["$" + key] = value;
+	}
+	,getReserved: function(key) {
+		if(this.rh == null) {
+			return null;
+		} else {
+			return this.rh["$" + key];
+		}
+	}
+};
 var haxe_http_HttpBase = function(url) {
 	this.url = url;
 	this.headers = [];
@@ -1208,10 +1315,11 @@ lib_Haxelib.prototype = {
 		});
 	}
 };
-var source_GitHub = function(owner,project,target) {
+var source_GitHub = function(owner,project,target,credentials) {
 	this.owner = owner;
 	this.project = project;
 	this.target = target;
+	this.credentials = credentials;
 };
 source_GitHub.__name__ = true;
 source_GitHub.__interfaces__ = [Source];
@@ -1223,29 +1331,71 @@ source_GitHub.prototype = {
 		switch(_g[1]) {
 		case 0:
 			var tag = _g[2];
-			res = tink_core__$Promise_Promise_$Impl_$.next(tink_http__$Fetch_FetchResponse_$Impl_$.all(tink_http_Fetch.fetch(tink__$Url_Url_$Impl_$.fromString("https://api.github.com/repos/" + this.owner + "/" + this.project + "/tags"),null)),function(res1) {
+			var url = tink__$Url_Url_$Impl_$.fromString("https://api.github.com/repos/" + this.owner + "/" + this.project + "/tags");
+			var this1 = this.credentials;
+			var options;
+			if(this1 == null) {
+				options = new tink_http_HeaderField(tink_http__$Header_HeaderName_$Impl_$.ofString("X-DUMMY"),"");
+			} else {
+				var _g1 = this1.indexOf(":");
+				if(_g1 == -1) {
+					throw new js__$Boot_HaxeError("invalid credentials");
+				} else {
+					var i = _g1;
+					options = new tink_http_HeaderField("authorization",tink_http__$Header_HeaderValue_$Impl_$.basicAuth(HxOverrides.substr(this1,0,i),HxOverrides.substr(this1,i + 1,null)));
+				}
+			}
+			res = tink_core__$Promise_Promise_$Impl_$.next(tink_http__$Fetch_FetchResponse_$Impl_$.all(tink_http_Fetch.fetch(url,{ headers : [options]})),function(res1) {
 				var obj = JSON.parse(res1.body.toString());
-				var _g1 = Lambda.find(obj,function(t) {
+				var _g2 = Lambda.find(obj,function(t) {
 					return t.name == tag;
 				});
-				if(_g1 == null) {
-					return tink_core__$Promise_Promise_$Impl_$.ofOutcome(tink_core_Outcome.Failure(new tink_core_TypedError(null,"GitHub: Tag " + tag + " not found for " + _gthis.owner + "/" + _gthis.project,{ fileName : "GitHub.hx", lineNumber : 27, className : "source.GitHub", methodName : "getInfo"})));
+				if(_g2 == null) {
+					return tink_core__$Promise_Promise_$Impl_$.ofOutcome(tink_core_Outcome.Failure(new tink_core_TypedError(null,"GitHub: Tag " + tag + " not found for " + _gthis.owner + "/" + _gthis.project,{ fileName : "GitHub.hx", lineNumber : 29, className : "source.GitHub", methodName : "getInfo"})));
 				} else {
-					var v = _g1;
-					return tink_http__$Fetch_FetchResponse_$Impl_$.all(tink_http_Fetch.fetch(tink__$Url_Url_$Impl_$.fromString("https://api.github.com/repos/" + _gthis.owner + "/" + _gthis.project + "/commits?sha=" + v.commit.sha),null));
+					var v = _g2;
+					var url1 = tink__$Url_Url_$Impl_$.fromString("https://api.github.com/repos/" + _gthis.owner + "/" + _gthis.project + "/commits?sha=" + v.commit.sha);
+					var this2 = _gthis.credentials;
+					var options1;
+					if(this2 == null) {
+						options1 = new tink_http_HeaderField(tink_http__$Header_HeaderName_$Impl_$.ofString("X-DUMMY"),"");
+					} else {
+						var _g3 = this2.indexOf(":");
+						if(_g3 == -1) {
+							throw new js__$Boot_HaxeError("invalid credentials");
+						} else {
+							var i1 = _g3;
+							options1 = new tink_http_HeaderField("authorization",tink_http__$Header_HeaderValue_$Impl_$.basicAuth(HxOverrides.substr(this2,0,i1),HxOverrides.substr(this2,i1 + 1,null)));
+						}
+					}
+					return tink_http__$Fetch_FetchResponse_$Impl_$.all(tink_http_Fetch.fetch(url1,{ headers : [options1]}));
 				}
 			});
 			break;
 		case 1:
 			var branch = _g[2];
-			res = tink_http__$Fetch_FetchResponse_$Impl_$.all(tink_http_Fetch.fetch(tink__$Url_Url_$Impl_$.fromString("https://api.github.com/repos/" + this.owner + "/" + this.project + "/commits?sha=" + branch),null));
+			var url2 = tink__$Url_Url_$Impl_$.fromString("https://api.github.com/repos/" + this.owner + "/" + this.project + "/commits?sha=" + branch);
+			var this3 = this.credentials;
+			var options2;
+			if(this3 == null) {
+				options2 = new tink_http_HeaderField(tink_http__$Header_HeaderName_$Impl_$.ofString("X-DUMMY"),"");
+			} else {
+				var _g4 = this3.indexOf(":");
+				if(_g4 == -1) {
+					throw new js__$Boot_HaxeError("invalid credentials");
+				} else {
+					var i2 = _g4;
+					options2 = new tink_http_HeaderField("authorization",tink_http__$Header_HeaderValue_$Impl_$.basicAuth(HxOverrides.substr(this3,0,i2),HxOverrides.substr(this3,i2 + 1,null)));
+				}
+			}
+			res = tink_http__$Fetch_FetchResponse_$Impl_$.all(tink_http_Fetch.fetch(url2,{ headers : [options2]}));
 			break;
 		}
 		return tink_core__$Promise_Promise_$Impl_$.next(res,function(res2) {
 			var obj1 = JSON.parse(res2.body.toString());
 			var _g11 = obj1[0];
 			if(_g11 == null) {
-				return tink_core__$Promise_Promise_$Impl_$.ofOutcome(tink_core_Outcome.Failure(new tink_core_TypedError(null,"Unreachable",{ fileName : "GitHub.hx", lineNumber : 38, className : "source.GitHub", methodName : "getInfo"})));
+				return tink_core__$Promise_Promise_$Impl_$.ofOutcome(tink_core_Outcome.Failure(new tink_core_TypedError(null,"Unreachable",{ fileName : "GitHub.hx", lineNumber : 40, className : "source.GitHub", methodName : "getInfo"})));
 			} else {
 				var v1 = _g11;
 				return tink_core__$Promise_Promise_$Impl_$.ofOutcome(tink_core_Outcome.Success({ date : new Date(v1.commit.author.date), sha : v1.sha}));
@@ -2257,6 +2407,11 @@ tink_http_Header.prototype = {
 		}
 	}
 };
+var tink_http__$Header_HeaderValue_$Impl_$ = {};
+tink_http__$Header_HeaderValue_$Impl_$.__name__ = true;
+tink_http__$Header_HeaderValue_$Impl_$.basicAuth = function(username,password) {
+	return "Basic " + haxe_crypto_Base64.encode(haxe_io_Bytes.ofString("" + username + ":" + password)).toString();
+};
 var tink_http__$Header_HeaderName_$Impl_$ = {};
 tink_http__$Header_HeaderName_$Impl_$.__name__ = true;
 tink_http__$Header_HeaderName_$Impl_$.ofString = function(s) {
@@ -2814,12 +2969,84 @@ tink_url__$Path_Path_$Impl_$.normalize = function(s) {
 	}
 	return parts.join("/");
 };
+var tink_url__$Portion_Portion_$Impl_$ = {};
+tink_url__$Portion_Portion_$Impl_$.__name__ = true;
+tink_url__$Portion_Portion_$Impl_$.stringly = function(this1) {
+	return tink_url__$Portion_Portion_$Impl_$.toString(this1);
+};
+tink_url__$Portion_Portion_$Impl_$.toString = function(this1) {
+	if(this1 == null) {
+		return null;
+	} else {
+		return decodeURIComponent(this1.split("+").join(" "));
+	}
+};
+tink_url__$Portion_Portion_$Impl_$.ofString = function(s) {
+	var this1 = s == null ? "" : encodeURIComponent(s);
+	return this1;
+};
+var tink_url__$Query_Query_$Impl_$ = {};
+tink_url__$Query_Query_$Impl_$.__name__ = true;
+tink_url__$Query_Query_$Impl_$.toMap = function(this1) {
+	var _g = new haxe_ds_StringMap();
+	var p = new tink_url__$Query_QueryStringParser(this1,"&","=",0);
+	while(p.hasNext()) {
+		var p1 = p.next();
+		var key = p1.name.toString();
+		var value = p1.value;
+		if(__map_reserved[key] != null) {
+			_g.setReserved(key,value);
+		} else {
+			_g.h[key] = value;
+		}
+	}
+	return _g;
+};
+var tink_url__$Query_QueryStringParser = function(s,sep,set,pos) {
+	this.s = s == null ? "" : s;
+	this.sep = sep;
+	this.set = set;
+	this.pos = pos;
+};
+tink_url__$Query_QueryStringParser.__name__ = true;
+tink_url__$Query_QueryStringParser.trimmedSub = function(s,start,end) {
+	if(start >= s.length) {
+		var this1 = "";
+		return this1;
+	}
+	while(s.charCodeAt(start) < 33) ++start;
+	if(end < s.length - 1) {
+		while(s.charCodeAt(end - 1) < 33) --end;
+	}
+	var this2 = s.substring(start,end);
+	return this2;
+};
+tink_url__$Query_QueryStringParser.prototype = {
+	hasNext: function() {
+		return this.pos < this.s.length;
+	}
+	,next: function() {
+		var next = this.s.indexOf(this.sep,this.pos);
+		if(next == -1) {
+			next = this.s.length;
+		}
+		var split = this.s.indexOf(this.set,this.pos);
+		var start = this.pos;
+		this.pos = next + this.sep.length;
+		if(split == -1 || split > next) {
+			return new tink_core_NamedWith(tink_url__$Portion_Portion_$Impl_$.stringly(tink_url__$Query_QueryStringParser.trimmedSub(this.s,start,next)),tink_url__$Portion_Portion_$Impl_$.ofString(""));
+		} else {
+			return new tink_core_NamedWith(tink_url__$Portion_Portion_$Impl_$.stringly(tink_url__$Query_QueryStringParser.trimmedSub(this.s,start,split)),tink_url__$Query_QueryStringParser.trimmedSub(this.s,split + this.set.length,next));
+		}
+	}
+};
 function $getIterator(o) { if( o instanceof Array ) return HxOverrides.iter(o); else return o.iterator(); }
 var $_, $fid = 0;
 function $bind(o,m) { if( m == null ) return null; if( m.__id__ == null ) m.__id__ = $fid++; var f; if( o.hx__closures__ == null ) o.hx__closures__ = {}; else f = o.hx__closures__[m.__id__]; if( f == null ) { f = m.bind(o); o.hx__closures__[m.__id__] = f; } return f; }
 String.__name__ = true;
 Array.__name__ = true;
 Date.__name__ = ["Date"];
+var __map_reserved = {};
 Object.defineProperty(js__$Boot_HaxeError.prototype,"message",{ get : function() {
 	return String(this.val);
 }});
@@ -2832,6 +3059,8 @@ DateTools.DAY_SHORT_NAMES = ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"];
 DateTools.DAY_NAMES = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
 DateTools.MONTH_SHORT_NAMES = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
 DateTools.MONTH_NAMES = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+haxe_crypto_Base64.CHARS = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+haxe_crypto_Base64.BYTES = haxe_io_Bytes.ofString(haxe_crypto_Base64.CHARS);
 js_html_compat_Uint8Array.BYTES_PER_ELEMENT = 1;
 tink__$Chunk_EmptyChunk.EMPTY = new haxe_io_Bytes(new ArrayBuffer(0));
 tink__$Chunk_Chunk_$Impl_$.EMPTY = new tink__$Chunk_EmptyChunk();

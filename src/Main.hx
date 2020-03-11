@@ -5,12 +5,16 @@ import lib.*;
 import source.*;
 import Source;
 import js.Browser.*;
+import tink.Url;
 
 using DateTools;
 using tink.CoreApi;
 
 class Main {
 	static function main() {
+		
+		var url:Url = window.location.href;
+		var credentials:Credentials = url.query.toMap()['credentials'];
 		
 		function print(v:String) {
 			var pre = document.createPreElement();
@@ -19,7 +23,7 @@ class Main {
 		}
 		
 		function _check(owner:String, lib:String) {
-			check(lib, owner, lib, 'master')
+			check(lib, owner, lib, 'master', credentials)
 				.handle(function(o) switch o {
 					case Success({tag: tag, latest: latest}) if(tag.sha == latest.sha):
 						// trace(tag, latest);	
@@ -39,14 +43,14 @@ class Main {
 				});
 		}
 		
-		fetch('https://api.github.com/orgs/haxetink/repos?per_page=100').all()
+		fetch('https://api.github.com/orgs/haxetink/repos?per_page=100', {headers: [credentials]}).all()
 			.handle(o -> {
 				var repos:Array<{name:String}> = haxe.Json.parse(o.sure().body);
 				trace('Got ${repos.length} tink repos');
 				for(repo in repos) _check('haxetink', repo.name);
 			});
 		
-		fetch('https://api.github.com/orgs/MVCoconut/repos?per_page=100').all()
+		fetch('https://api.github.com/orgs/MVCoconut/repos?per_page=100', {headers: [credentials]}).all()
 			.handle(o -> {
 				var repos:Array<{name:String}> = haxe.Json.parse(o.sure().body);
 				trace('Got ${repos.length} coconut repos');
@@ -55,13 +59,13 @@ class Main {
 		
 	}
 	
-	static function check(lib:String, owner:String, project:String, branch:String):Promise<Result> {
+	static function check(lib:String, owner:String, project:String, branch:String, credentials):Promise<Result> {
 		var haxelib = new Haxelib(lib);
 		return haxelib.getInfo()
 			.next(lib -> {
 				Promise.inParallel([
-					new GitHub(owner, project, Tag(lib.version)).getInfo(),
-					new GitHub(owner, project, Branch(branch)).getInfo(),
+					new GitHub(owner, project, Tag(lib.version), credentials).getInfo(),
+					new GitHub(owner, project, Branch(branch), credentials).getInfo(),
 				]);
 			})
 			.next(res -> {

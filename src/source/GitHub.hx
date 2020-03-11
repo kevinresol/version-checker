@@ -9,27 +9,29 @@ class GitHub implements Source {
 	var owner:String;
 	var project:String;
 	var target:Target;
+	var credentials:Credentials;
 	
-	public function new(owner, project, target) {
+	public function new(owner, project, target, credentials) {
 		this.owner = owner;
 		this.project = project;
 		this.target = target;
+		this.credentials = credentials;
 	}
 	
 	public function getInfo() {
 		
 		var res = switch target {
 			case Tag(tag):
-				fetch('https://api.github.com/repos/$owner/$project/tags').all()
+				fetch('https://api.github.com/repos/$owner/$project/tags', {headers: [credentials]}).all()
 					.next(res -> {
 						var obj:Array<{name:String, commit:{sha:String}}> = haxe.Json.parse(res.body);
 						switch obj.find(t -> t.name == tag) {
 							case null: new Error('GitHub: Tag $tag not found for $owner/$project');
-							case v: fetch('https://api.github.com/repos/$owner/$project/commits?sha=${v.commit.sha}').all();
+							case v: fetch('https://api.github.com/repos/$owner/$project/commits?sha=${v.commit.sha}', {headers: [credentials]}).all();
 						}
 					});
 			case Branch(branch):
-				fetch('https://api.github.com/repos/$owner/$project/commits?sha=$branch').all();
+				fetch('https://api.github.com/repos/$owner/$project/commits?sha=$branch', {headers: [credentials]}).all();
 		}
 		
 		return res.next(res -> {
@@ -49,3 +51,4 @@ enum Target {
 	Tag(tag:String);
 	Branch(branch:String);
 }
+
