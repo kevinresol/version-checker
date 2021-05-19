@@ -1,5 +1,7 @@
 import tink.http.Header;
 
+
+@:transitive 
 abstract Credentials(String) from String {
 	@:to inline function toHeader():HeaderField {
 		return
